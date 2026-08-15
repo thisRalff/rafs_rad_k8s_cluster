@@ -8,6 +8,10 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# Configuration - matches variables.tf defaults
+CLUSTER_NAME="gitops-poc"
+AWS_REGION="us-west-2"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -31,6 +35,7 @@ usage() {
     echo "  phase2      - Apply only Phase 2 (Karpenter Helm + NodePool)"
     echo "  plan-phase1 - Plan Phase 1 only"
     echo "  plan-phase2 - Plan Phase 2 only (requires existing cluster)"
+    echo "  status      - Check cluster status"
     echo ""
     echo "Note: Phase 2 planning/apply requires the EKS cluster to exist first."
     echo "      The kubectl/helm providers need to connect to a real cluster."
@@ -38,12 +43,50 @@ usage() {
     exit 1
 }
 
+get_cluster_status() {
+    aws eks describe-cluster --name "$CLUSTER_NAME" --region "$AWS_REGION" --query 'cluster.status' --output text 2>/dev/null || echo "NOT_FOUND"
+}
+
 check_cluster_exists() {
-    local cluster_name
-    cluster_name=$(terraform output -raw cluster_name 2>/dev/null || echo "")
-    if [ -n "$cluster_name" ]; then
-        aws eks describe-cluster --name "$cluster_name" --query 'cluster.status' --output text 2>/dev/null && return 0
-    fi
+    local status
+    status=$(get_cluster_status)
+    [ "$status" = "ACTIVE" ]
+}
+
+wait_for_cluster() {
+    echo_info "Waiting for EKS cluster '$CLUSTER_NAME' to be ACTIVE..."
+    
+    local max_attempts=60  # 30 minutes max (30 sec intervals)
+    local attempt=0
+    local status
+    
+    while [ $attempt -lt $max_attempts ]; do
+        status=$(get_cluster_status)
+        
+        case "$status" in
+            ACTIVE)
+                echo_info "Cluster is ACTIVE!"
+                return 0
+                ;;
+            CREATING)
+                echo_info "Cluster status: CREATING (attempt $((attempt + 1))/$max_attempts)..."
+                sleep 30
+                ;;
+            NOT_FOUND)
+                echo_error "Cluster not found. Phase 1 may not have completed successfully."
+                echo_error "Check terraform apply output and try again."
+                return 1
+                ;;
+            *)
+                echo_error "Unexpected cluster status: $status"
+                return 1
+                ;;
+        esac
+        
+        attempt=$((attempt + 1))
+    done
+    
+    echo_error "Timeout waiting for cluster to become ACTIVE."
     return 1
 }
 
@@ -53,7 +96,7 @@ phase1_targets() {
 }
 
 phase2_targets() {
-    echo "-target=module.karpenter_helm -target=module.karpenter_nodepool"
+    echo "-target=module.karpenter_helm -target=module.karpenter_nodepool -target=module.argocd"
 }
 
 do_init() {
@@ -90,15 +133,15 @@ do_apply_phase1() {
     echo_info "Applying Phase 1: VPC, EKS, OIDC, Karpenter IRSA..."
     terraform apply $(phase1_targets)
     
-    echo_info "Waiting for EKS cluster to be ACTIVE..."
-    local cluster_name
-    cluster_name=$(terraform output -raw cluster_name 2>/dev/null)
-    aws eks wait cluster-active --name "$cluster_name"
-    echo_info "Cluster is ACTIVE!"
+    # Wait for cluster using our robust wait function
+    if ! wait_for_cluster; then
+        echo_error "Failed waiting for cluster. Aborting."
+        exit 1
+    fi
     
     # Update kubeconfig
     echo_info "Updating kubeconfig..."
-    aws eks update-kubeconfig --name "$cluster_name" --region us-west-2
+    aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$AWS_REGION"
 }
 
 do_apply_phase2() {
@@ -128,13 +171,27 @@ do_apply() {
     
     echo ""
     echo_info "=== Deployment Complete ==="
-    echo_info "Cluster: $(terraform output -raw cluster_name)"
-    echo_info "Endpoint: $(terraform output -raw cluster_endpoint)"
+    echo_info "Cluster: $CLUSTER_NAME"
+    echo_info "Region: $AWS_REGION"
     echo ""
     echo_info "Verify Karpenter:"
     echo "  kubectl get pods -n karpenter"
     echo "  kubectl get nodepools"
     echo "  kubectl get ec2nodeclasses"
+}
+
+do_status() {
+    local status
+    status=$(get_cluster_status)
+    echo_info "Cluster: $CLUSTER_NAME"
+    echo_info "Region: $AWS_REGION"
+    echo_info "Status: $status"
+    
+    if [ "$status" = "ACTIVE" ]; then
+        echo ""
+        echo_info "Terraform state:"
+        terraform state list 2>/dev/null | wc -l | xargs -I {} echo "  {} resources in state"
+    fi
 }
 
 do_destroy() {
@@ -183,6 +240,9 @@ case "${1:-}" in
         ;;
     phase2)
         do_apply_phase2
+        ;;
+    status)
+        do_status
         ;;
     -h|--help|-\?|\?)
         usage

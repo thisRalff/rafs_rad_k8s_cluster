@@ -43,3 +43,9 @@ output "karpenter_controller_role_arn" {
 output "karpenter_interruption_queue_name" {
   value = module.karpenter_irsa.interruption_queue_name
 }
+
+
+output "argocd_namespace" {
+  description = "Namespace where ArgoCD is installed"
+  value       = module.argocd.namespace
+}

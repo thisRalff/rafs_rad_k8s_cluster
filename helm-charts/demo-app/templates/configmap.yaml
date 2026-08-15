@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-content
+  labels:
+    app: {{ .Release.Name }}
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head><title>GitOps Demo</title></head>
+    <body>
+      <h1>{{ .Values.message }}</h1>
+      <p>Image: {{ .Values.image.repository }}:{{ .Values.image.tag }}</p>
+      <p>Replicas: {{ .Values.replicaCount }}</p>
+    </body>
+    </html>

@@ -111,3 +111,22 @@ variable "node_capacity_type" {
   type        = string
   default     = "ON_DEMAND"
 }
+
+
+variable "argocd_namespace" {
+  description = "Kubernetes namespace for ArgoCD"
+  type        = string
+  default     = "argocd"
+}
+
+variable "argocd_version" {
+  description = "ArgoCD Helm chart version"
+  type        = string
+  default     = "7.7.7"
+}
+
+variable "argocd_service_type" {
+  description = "Service type for ArgoCD server (LoadBalancer for demo access)"
+  type        = string
+  default     = "LoadBalancer"
+}

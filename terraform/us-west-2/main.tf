@@ -84,3 +84,13 @@ module "karpenter_nodepool" {
 
   depends_on = [module.karpenter_helm]
 }
+
+module "argocd" {
+  source = "../modules/argocd"
+
+  argocd_namespace    = var.argocd_namespace
+  argocd_version      = var.argocd_version
+  server_service_type = var.argocd_service_type
+
+  depends_on = [module.eks]
+}

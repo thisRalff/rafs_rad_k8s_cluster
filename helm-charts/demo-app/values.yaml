@@ -1,0 +1,23 @@
+# Default values for demo-app
+# These are the knobs ArgoCD will manage via git
+
+replicaCount: 3
+
+image:
+  repository: nginx
+  tag: "1.27-alpine"
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 80
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+message: "Hello World from GitOps!"
