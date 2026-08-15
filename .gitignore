@@ -8,6 +8,10 @@ credentials
 # Resumes - personal, don't commit
 Rafael_Solo*.docx
 
+# Notes and TODO - keep local
+TODO.md
+notes/
+
 # Terraform
 **/.terraform/*
 *.tfstate
