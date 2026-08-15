@@ -103,5 +103,5 @@ variable "node_max_size" {
 variable "node_capacity_type" {
   description = "Capacity type for the initial managed node group (ON_DEMAND or SPOT)"
   type        = string
-  default     = "SPOT"
+  default     = "ON_DEMAND"
 }

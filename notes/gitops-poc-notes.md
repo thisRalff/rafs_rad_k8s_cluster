@@ -347,6 +347,70 @@ honor tokens from this specific cluster in the first place.
 
 ---
 
+## Karpenter - what it is and why it's here
+
+**What Karpenter does:** automatic node provisioning for Kubernetes. When pods
+can't be scheduled (no node with enough capacity), Karpenter detects that and
+launches new EC2 instances to handle them. When pods go away and nodes become
+idle, Karpenter terminates the nodes to save cost.
+
+**How it's different from Cluster Autoscaler (the older approach):**
+- **Cluster Autoscaler** works with pre-defined Auto Scaling Groups (ASGs).
+  You pick instance types up front, set min/max sizes, and the autoscaler
+  adjusts the count within those fixed groups. Reactive, constrained by
+  pre-configuration.
+- **Karpenter** bypasses ASGs entirely. It looks at actual resource requests
+  of pending pods (CPU, memory, GPU, architecture) and provisions best-fit
+  instance types on the fly from the full EC2 catalog. No pre-defined node
+  groups. Can mix instance types, use spot vs on-demand dynamically, bin-pack
+  more efficiently.
+
+**One-liner framing:** Karpenter is an autoscaling group (generic concept),
+not an Auto Scaling Group (AWS resource). Same job - dynamically adjusting
+compute capacity - but with its own logic, running as a Kubernetes controller,
+making smarter per-pod decisions. It doesn't use the AWS ASG resource at all;
+it calls EC2 Fleet API directly.
+
+**Where Karpenter runs:** as a pod inside your EKS cluster, on one of the
+existing nodes (typically the initial managed node group - the "bootstrap"
+nodes). From there it watches the Kubernetes API for unschedulable pods, then
+calls AWS APIs (via IRSA) to provision new instances and register them as
+cluster nodes.
+
+**Why the bootstrap node group matters:** you need *something* running to host
+Karpenter before Karpenter can take over provisioning. That's the initial
+managed node group in our EKS module.
+
+**Production consideration:** the bootstrap nodes (hosting Karpenter, CoreDNS,
+critical add-ons) should be ON_DEMAND, not SPOT. If the node running Karpenter
+gets spot-interrupted, and Karpenter is what's supposed to handle
+interruptions and provision replacements... the thing that saves you is the
+thing that just died. Karpenter can provision SPOT nodes for actual workloads;
+just keep the controller itself on stable ON_DEMAND nodes. (We've set
+`node_capacity_type = "ON_DEMAND"` for exactly this reason.)
+
+**Spot interruption handling (the SQS/EventBridge setup):**
+Spot instances are cheap but AWS can reclaim them with ~2 minutes warning.
+Without handling:
+- Spot reclaim → pods killed mid-request → bad day
+
+With the interruption queue:
+1. EC2 emits an event ("this spot instance is about to be interrupted")
+2. EventBridge (the rules in `aws_cloudwatch_event_rule` - legacy naming,
+   it's really EventBridge) catches it
+3. EventBridge pushes it to the SQS queue we created
+4. Karpenter polls SQS, sees the warning, proactively drains the node
+   (cordons it, evicts pods gracefully), provisions a replacement *before*
+   the instance actually dies
+5. Original instance dies → nobody notices
+
+Note: the "outbid" framing for spot is outdated. AWS changed to a smoother
+capacity-based model; you don't set a max bid anymore, you just get current
+spot price, and AWS reclaims when they need capacity back. But the 2-minute
+warning mechanism is the same.
+
+---
+
 ## Job description gap analysis (for interview prep)
 
 Original gap found comparing resume to job spec (Terraform/Helm/ArgoCD/EKS/

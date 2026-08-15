@@ -5,6 +5,9 @@ aws_keys/
 credentials
 .env
 
+# Resumes - personal, don't commit
+Rafael_Solo*.docx
+
 # Terraform
 **/.terraform/*
 *.tfstate

@@ -25,18 +25,17 @@ Project: EKS + Terraform + Helm + ArgoCD + Karpenter proof of concept.
 - [x] Split OIDC provider into its own module (`terraform/modules/oidc/`) -
       EKS module now just outputs `oidc_issuer_url`, root module wires it into
       the new oidc module
-- [x] Local git repo initialized (`git init`), terraform/ + .gitignore + TODO.md
-      staged (resumes and aws_keys/ left untracked/ignored) - not committed yet,
-      only commit when explicitly asked
+- [x] Local git repo initialized, pushed to GitHub (thisRalff/rafs_rad_k8s_cluster)
+- [x] Karpenter IRSA module (`terraform/modules/karpenter-irsa/`) - controller
+      IAM role with OIDC trust policy scoped to karpenter:karpenter service
+      account, full EC2/IAM/EKS/SSM/Pricing permissions needed for node
+      provisioning, plus SQS queue + EventBridge rules for spot interruption
+      handling
 
 ## Next Up
-- [ ] First commit (waiting on explicit go-ahead)
-- [ ] Decide on remote (GitHub, given job spec leans GitHub Actions) and repo
-      structure (single repo vs separate app-source/gitops-config repos)
-- [ ] IRSA IAM roles for Karpenter specifically (controller role + node role,
-      trust policy scoped to the OIDC provider)
-- [ ] Karpenter install (Helm) - pointed at private subnets already tagged
-      `karpenter.sh/discovery`
+- [ ] Commit + push the karpenter-irsa module
+- [ ] Karpenter Helm install (after infra is applied) - pass controller_role_arn
+      and interruption_queue_name from Terraform outputs into Helm values
 - [ ] ArgoCD install (Helm)
 - [ ] Demo app Helm chart (simple templated app - image tag/replica count/env values)
 - [ ] Git repo for ArgoCD to sync from (app-of-apps or single app pattern)

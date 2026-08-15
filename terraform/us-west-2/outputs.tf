@@ -25,3 +25,11 @@ output "eks_oidc_provider_arn" {
 output "eks_oidc_provider_url" {
   value = module.oidc.provider_url
 }
+
+output "karpenter_controller_role_arn" {
+  value = module.karpenter_irsa.controller_role_arn
+}
+
+output "karpenter_interruption_queue_name" {
+  value = module.karpenter_irsa.interruption_queue_name
+}

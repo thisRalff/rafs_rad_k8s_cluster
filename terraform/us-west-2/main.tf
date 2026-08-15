@@ -50,3 +50,14 @@ module "oidc" {
 
   tags = local.common_tags
 }
+
+module "karpenter_irsa" {
+  source = "../modules/karpenter-irsa"
+
+  cluster_name      = var.cluster_name
+  oidc_provider_arn = module.oidc.provider_arn
+  oidc_provider_url = module.oidc.provider_url
+  node_role_arn     = module.eks.node_role_arn
+
+  tags = local.common_tags
+}
