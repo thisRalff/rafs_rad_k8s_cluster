@@ -33,6 +33,7 @@ module "eks" {
 
   endpoint_public_access  = var.endpoint_public_access
   endpoint_private_access = var.endpoint_private_access
+  public_access_cidrs     = var.public_access_cidrs
 
   node_instance_types = var.node_instance_types
   node_desired_size   = var.node_desired_size
@@ -60,4 +61,26 @@ module "karpenter_irsa" {
   node_role_arn     = module.eks.node_role_arn
 
   tags = local.common_tags
+}
+
+module "karpenter_helm" {
+  source = "../modules/karpenter-helm"
+
+  cluster_name            = var.cluster_name
+  cluster_endpoint        = module.eks.cluster_endpoint
+  controller_role_arn     = module.karpenter_irsa.controller_role_arn
+  interruption_queue_name = module.karpenter_irsa.interruption_queue_name
+  node_role_name          = module.eks.node_role_name
+
+  depends_on = [module.eks]
+}
+
+module "karpenter_nodepool" {
+  source = "../modules/karpenter-nodepool"
+
+  cluster_name       = var.cluster_name
+  node_role_name     = module.eks.node_role_name
+  private_subnet_ids = module.vpc.private_subnet_ids
+
+  depends_on = [module.karpenter_helm]
 }

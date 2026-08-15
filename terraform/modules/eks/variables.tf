@@ -33,6 +33,12 @@ variable "endpoint_private_access" {
   type        = bool
 }
 
+variable "public_access_cidrs" {
+  description = "CIDRs allowed to access the EKS public API endpoint"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
 variable "node_instance_types" {
   description = "Instance types for the initial managed node group"
   type        = list(string)

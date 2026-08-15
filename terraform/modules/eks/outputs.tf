@@ -21,3 +21,7 @@ output "oidc_issuer_url" {
 output "node_role_arn" {
   value = aws_iam_role.node.arn
 }
+
+output "node_role_name" {
+  value = aws_iam_role.node.name
+}

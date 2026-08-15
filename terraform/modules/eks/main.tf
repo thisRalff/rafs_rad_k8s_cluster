@@ -31,6 +31,7 @@ resource "aws_eks_cluster" "this" {
     subnet_ids              = concat(var.private_subnet_ids, var.public_subnet_ids)
     endpoint_public_access  = var.endpoint_public_access
     endpoint_private_access = var.endpoint_private_access
+    public_access_cidrs     = var.public_access_cidrs
   }
 
   tags = var.tags
@@ -69,6 +70,49 @@ resource "aws_iam_role_policy_attachment" "node_cni_policy" {
 resource "aws_iam_role_policy_attachment" "node_ecr_policy" {
   role       = aws_iam_role.node.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
+resource "aws_iam_role_policy_attachment" "node_ssm_policy" {
+  role       = aws_iam_role.node.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+# ---------------------------------------------------------------------------
+# Security group for Karpenter-provisioned nodes
+# ---------------------------------------------------------------------------
+resource "aws_security_group" "karpenter_nodes" {
+  name        = "${var.cluster_name}-karpenter-nodes"
+  description = "Security group for Karpenter-provisioned nodes"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description     = "Allow all traffic from cluster security group"
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    security_groups = [aws_eks_cluster.this.vpc_config[0].cluster_security_group_id]
+  }
+
+  ingress {
+    description = "Allow all traffic from self"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    self        = true
+  }
+
+  egress {
+    description = "Allow all outbound"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(var.tags, {
+    Name                     = "${var.cluster_name}-karpenter-nodes"
+    "karpenter.sh/discovery" = var.cluster_name
+  })
 }
 
 # ---------------------------------------------------------------------------
