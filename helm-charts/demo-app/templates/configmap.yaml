@@ -1,17 +1,22 @@
+{{- range .Values.pods }}
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-content
+  name: {{ $.Release.Name }}-{{ .name }}-content
   labels:
-    app: {{ .Release.Name }}
+    app: {{ $.Release.Name }}
+    pod: {{ .name }}
 data:
   index.html: |
     <!DOCTYPE html>
     <html>
     <head><title>GitOps Demo</title></head>
-    <body>
-      <h1>{{ .Values.message }}</h1>
-      <p>Image: {{ .Values.image.repository }}:{{ .Values.image.tag }}</p>
-      <p>Replicas: {{ .Values.replicaCount }}</p>
+    <body style="font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #1a1a2e; color: #eee;">
+      <div style="text-align: center;">
+        <h1 style="font-size: 4rem;">{{ .message }}</h1>
+        <p style="color: #888;">Pod: {{ .name }}</p>
+      </div>
     </body>
     </html>
+{{- end }}

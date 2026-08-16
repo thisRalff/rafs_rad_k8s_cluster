@@ -1,7 +1,13 @@
-# Default values for demo-app
-# These are the knobs ArgoCD will manage via git
+# Demo app - 3 pods behind one LoadBalancer, each with a different greeting
+# Change these messages and push to git -> ArgoCD syncs -> cluster updates
 
-replicaCount: 3
+pods:
+  - name: hello
+    message: "Hello World!"
+  - name: ello
+    message: "'Ello World!"
+  - name: gday
+    message: "G'day World!"
 
 image:
   repository: nginx
@@ -19,5 +25,3 @@ resources:
   limits:
     cpu: 100m
     memory: 128Mi
-
-message: "Hello World from GitOps!"

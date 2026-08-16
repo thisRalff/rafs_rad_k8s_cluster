@@ -11,4 +11,5 @@ spec:
       targetPort: 80
       protocol: TCP
   selector:
+    # Selects ALL pods with the app label - load balances across all 3 greetings
     app: {{ .Release.Name }}
