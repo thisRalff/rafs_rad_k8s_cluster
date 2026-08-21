@@ -1,71 +1,58 @@
+###############################################################################
+# EKS Module — Input Variables (no defaults — all values from root)
+###############################################################################
+
 variable "cluster_name" {
-  description = "Name of the EKS cluster"
+  description = "EKS cluster name"
   type        = string
 }
 
 variable "cluster_version" {
-  description = "Kubernetes version for the EKS control plane"
-  type        = string
-}
-
-variable "vpc_id" {
-  description = "VPC ID the cluster and nodes will run in"
+  description = "Kubernetes version"
   type        = string
 }
 
 variable "private_subnet_ids" {
-  description = "Private subnet IDs for worker nodes"
+  description = "Private subnet IDs for nodes"
   type        = list(string)
 }
 
 variable "public_subnet_ids" {
-  description = "Public subnet IDs (needed for control plane ENI placement / public endpoint access)"
+  description = "Public subnet IDs for ALB / control plane ENIs"
   type        = list(string)
-}
-
-variable "endpoint_public_access" {
-  description = "Whether the EKS public API endpoint is enabled"
-  type        = bool
-}
-
-variable "endpoint_private_access" {
-  description = "Whether the EKS private API endpoint is enabled"
-  type        = bool
 }
 
 variable "public_access_cidrs" {
-  description = "CIDRs allowed to access the EKS public API endpoint"
+  description = "CIDRs allowed to reach EKS API (your IP)"
   type        = list(string)
-  default     = ["0.0.0.0/0"]
 }
 
 variable "node_instance_types" {
-  description = "Instance types for the initial managed node group"
+  description = "Instance types for bootstrap node group"
   type        = list(string)
 }
 
 variable "node_desired_size" {
-  description = "Desired number of nodes in the initial managed node group"
+  description = "Desired number of bootstrap nodes"
   type        = number
 }
 
 variable "node_min_size" {
-  description = "Minimum number of nodes in the initial managed node group"
+  description = "Minimum bootstrap nodes"
   type        = number
 }
 
 variable "node_max_size" {
-  description = "Maximum number of nodes in the initial managed node group"
+  description = "Maximum bootstrap nodes"
   type        = number
 }
 
-variable "node_capacity_type" {
-  description = "Capacity type for the initial managed node group (ON_DEMAND or SPOT)"
+variable "node_ami_type" {
+  description = "AMI type for node group (AL2_x86_64 or AL2023_x86_64_STANDARD)"
   type        = string
 }
 
 variable "tags" {
   description = "Common tags applied to all resources"
   type        = map(string)
-  default     = {}
 }

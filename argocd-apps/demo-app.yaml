@@ -15,9 +15,5 @@ spec:
     server: https://kubernetes.default.svc
     namespace: demo
 
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
+  # Keep synchronization manual until this repository is pinned to an approved
+  # revision and its ClusterIP Service change has been pushed to the source repo.

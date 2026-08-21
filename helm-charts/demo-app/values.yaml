@@ -1,5 +1,5 @@
-# Demo app - 3 pods behind one LoadBalancer, each with a different greeting
-# Change these messages and push to git -> ArgoCD syncs -> cluster updates
+# Demo app - 3 pods behind one internal ClusterIP Service, each with a greeting.
+# Terraform owns the restricted ALB ingress; Argo CD owns only these workloads.
 
 pods:
   - name: hello
@@ -15,7 +15,8 @@ image:
   pullPolicy: IfNotPresent
 
 service:
-  type: LoadBalancer
+  # The Terraform-managed ALB Ingress reaches Pods through this internal Service.
+  type: ClusterIP
   port: 80
 
 resources:

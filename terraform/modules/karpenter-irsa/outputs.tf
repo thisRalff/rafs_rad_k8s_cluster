@@ -1,14 +1,18 @@
+###############################################################################
+# Karpenter IRSA Module — Outputs
+###############################################################################
+
 output "controller_role_arn" {
-  description = "ARN of the Karpenter controller IAM role (pass to Helm)"
+  description = "Karpenter controller IRSA role ARN (passed to Helm chart)"
   value       = aws_iam_role.karpenter_controller.arn
 }
 
-output "controller_role_name" {
-  description = "Name of the Karpenter controller IAM role"
-  value       = aws_iam_role.karpenter_controller.name
+output "interruption_queue_name" {
+  description = "SQS queue name for spot interruption handling (passed to Helm chart)"
+  value       = aws_sqs_queue.karpenter_interruption.name
 }
 
-output "interruption_queue_name" {
-  description = "Name of the SQS queue for spot interruption events"
-  value       = aws_sqs_queue.karpenter_interruption.name
+output "interruption_queue_arn" {
+  description = "SQS queue ARN"
+  value       = aws_sqs_queue.karpenter_interruption.arn
 }

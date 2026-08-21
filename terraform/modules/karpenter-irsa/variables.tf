@@ -1,37 +1,38 @@
+###############################################################################
+# Karpenter IRSA Module — Input Variables (no defaults — all values from root)
+###############################################################################
+
 variable "cluster_name" {
-  description = "Name of the EKS cluster"
+  description = "EKS cluster name"
   type        = string
 }
 
 variable "oidc_provider_arn" {
-  description = "ARN of the OIDC provider (from the oidc module)"
+  description = "OIDC provider ARN (from EKS module)"
   type        = string
 }
 
 variable "oidc_provider_url" {
-  description = "URL of the OIDC provider without https:// prefix"
+  description = "OIDC issuer URL without https:// (from EKS module)"
+  type        = string
+}
+
+variable "node_role_arn" {
+  description = "Node IAM role ARN — Karpenter needs iam:PassRole to assign it to new nodes"
   type        = string
 }
 
 variable "karpenter_namespace" {
-  description = "Kubernetes namespace where Karpenter will be installed"
+  description = "Namespace where Karpenter runs"
   type        = string
-  default     = "karpenter"
 }
 
 variable "karpenter_service_account" {
-  description = "Name of the Kubernetes service account for Karpenter"
-  type        = string
-  default     = "karpenter"
-}
-
-variable "node_role_arn" {
-  description = "ARN of the IAM role used by Karpenter-provisioned nodes"
+  description = "ServiceAccount name Karpenter uses (must match Helm chart)"
   type        = string
 }
 
 variable "tags" {
-  description = "Common tags applied to all resources"
+  description = "Common tags"
   type        = map(string)
-  default     = {}
 }
