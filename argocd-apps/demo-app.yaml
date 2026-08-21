@@ -10,10 +10,21 @@ spec:
     repoURL: https://github.com/thisRalff/rafs_rad_k8s_cluster.git
     targetRevision: main
     path: helm-charts/demo-app
+    helm:
+      parameters:
+        - name: ingress.enabled
+          value: "true"
+        # Operator CIDR is injected here, NOT committed to the chart values.
+        # Replace with your /32 in the live Application (e.g. via `argocd app set
+        # demo-app -p ingress.inboundCidrs=X.X.X.X/32`) so it stays out of Git.
+        - name: ingress.inboundCidrs
+          value: ""
 
   destination:
     server: https://kubernetes.default.svc
     namespace: demo
 
-  # Keep synchronization manual until this repository is pinned to an approved
-  # revision and its ClusterIP Service change has been pushed to the source repo.
+  syncPolicy:
+    # Argo creates the demo namespace; sync stays manual for this POC.
+    syncOptions:
+      - CreateNamespace=true

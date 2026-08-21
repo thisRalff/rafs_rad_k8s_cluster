@@ -1,5 +1,5 @@
 # Demo app - 3 pods behind one internal ClusterIP Service, each with a greeting.
-# Terraform owns the restricted ALB ingress; Argo CD owns only these workloads.
+# Argo CD owns everything in this chart, including the ALB Ingress below.
 
 pods:
   - name: hello
@@ -15,9 +15,17 @@ image:
   pullPolicy: IfNotPresent
 
 service:
-  # The Terraform-managed ALB Ingress reaches Pods through this internal Service.
+  # The ALB Ingress reaches Pods through this internal Service.
   type: ClusterIP
   port: 80
+
+ingress:
+  # Enabled and IP-restricted via the Argo CD Application parameters, so the
+  # operator CIDR is never committed to Git. Leaving inboundCidrs empty means
+  # the ALB listener has no allow rule (effectively closed) until supplied.
+  enabled: false
+  path: /
+  inboundCidrs: ""
 
 resources:
   requests:
