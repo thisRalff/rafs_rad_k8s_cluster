@@ -1,0 +1,33 @@
+# =============================================================================
+# EXAMPLE — copy to terraform.tfvars and fill in real values
+# =============================================================================
+
+aws_region   = "us-west-2"
+cluster_name = "telp-k8s"
+project_name = "todoelpaso"
+environment  = "learning"
+
+# --- Existing VPC ---
+vpc_id = "vpc-XXXXXXXXXXXXXXXXX"
+
+private_subnet_ids = [
+  "subnet-XXXXXXXXXXXXXXXXX",
+  "subnet-XXXXXXXXXXXXXXXXX",
+  "subnet-XXXXXXXXXXXXXXXXX",
+]
+
+public_subnet_ids = [
+  "subnet-XXXXXXXXXXXXXXXXX",
+  "subnet-XXXXXXXXXXXXXXXXX",
+  "subnet-XXXXXXXXXXXXXXXXX",
+]
+
+# --- Existing external services ---
+rds_endpoint          = "your-rds.xxxxxx.us-west-2.rds.amazonaws.com"
+rds_security_group_id = "sg-XXXXXXXXXXXXXXXXX"
+
+redis_endpoint          = "your-redis.xxxxxx.usw2.cache.amazonaws.com:6379"
+redis_security_group_id = "sg-XXXXXXXXXXXXXXXXX"
+
+# --- Your IP for EKS API access ---
+public_access_cidrs = ["YOUR.IP.HERE/32"]

@@ -1,8 +1,10 @@
-# ArgoCD Helm release - installs the ArgoCD GitOps controller into the cluster
+###############################################################################
+# ArgoCD Module — Helm install
+###############################################################################
 
 resource "helm_release" "argocd" {
   name             = "argocd"
-  namespace        = var.argocd_namespace
+  namespace        = "argocd"
   create_namespace = true
   repository       = "https://argoproj.github.io/argo-helm"
   chart            = "argo-cd"
@@ -10,25 +12,33 @@ resource "helm_release" "argocd" {
   wait             = true
   timeout          = 600
 
-  # Expose the server UI via LoadBalancer for easy demo access
+  # Expose ArgoCD server via ClusterIP (access via port-forward for now)
   set {
     name  = "server.service.type"
-    value = var.server_service_type
+    value = "ClusterIP"
   }
 
-  # Disable TLS on the server for POC simplicity (no cert management needed)
+  # Disable TLS on the ArgoCD server (ALB terminates/handles the edge)
   set {
     name  = "configs.params.server\\.insecure"
-    value = tostring(var.server_insecure)
+    value = "true"
   }
 
-  # Disable Dex (SSO) - not needed for a POC
+  # Served under the /argocd subpath on the shared operator ALB. rootpath alone
+  # makes the server serve its UI, assets, and redirects under that prefix;
+  # setting basehref as well would double the prefix (/argocd/argocd).
+  set {
+    name  = "configs.params.server\\.rootpath"
+    value = "/argocd"
+  }
+
+  # Disable Dex (SSO) — not needed for this project
   set {
     name  = "dex.enabled"
     value = "false"
   }
 
-  # Disable notifications - not needed for a POC
+  # Disable notifications — not needed for this project
   set {
     name  = "notifications.enabled"
     value = "false"

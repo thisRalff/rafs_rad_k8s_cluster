@@ -4,6 +4,15 @@ aws_keys/
 *.key
 credentials
 .env
+.env.*
+!.env.example
+*.env
+!*.env.example
+kubeconfig
+kubeconfig-*
+
+# Site-specific Docker build context — contains paid plugins, themes, and mu-plugins
+/docker/
 
 # Resumes - personal, don't commit
 Rafael_Solo*.docx
@@ -17,7 +26,10 @@ notes/
 *.tfstate
 *.tfstate.*
 *.tfvars
+*.tfvars.json
 !*.tfvars.example
+*.tfplan
+*.tfplan.*
 crash.log
 crash.*.log
 override.tf

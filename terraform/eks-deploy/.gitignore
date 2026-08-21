@@ -1,0 +1,14 @@
+# Secrets — never commit
+terraform.tfvars
+*.tfvars
+!*.tfvars.example
+
+# Terraform working files
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+.terraform.tfstate.lock.info
+
+# OS junk
+.DS_Store

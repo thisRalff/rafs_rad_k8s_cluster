@@ -1,36 +1,33 @@
+###############################################################################
+# Karpenter Helm Module — Variables
+###############################################################################
+
 variable "cluster_name" {
-  description = "Name of the EKS cluster"
+  description = "EKS cluster name"
   type        = string
 }
 
 variable "cluster_endpoint" {
-  description = "EKS cluster API endpoint"
+  description = "EKS cluster endpoint"
   type        = string
-}
-
-variable "karpenter_namespace" {
-  description = "Kubernetes namespace for Karpenter"
-  type        = string
-  default     = "karpenter"
-}
-
-variable "karpenter_version" {
-  description = "Version of the Karpenter Helm chart"
-  type        = string
-  default     = "1.0.8"
 }
 
 variable "controller_role_arn" {
-  description = "ARN of the IAM role for the Karpenter controller (from karpenter-irsa module)"
+  description = "Karpenter IRSA role ARN"
   type        = string
 }
 
 variable "interruption_queue_name" {
-  description = "Name of the SQS queue for spot interruption events"
+  description = "SQS queue name for interruption handling"
   type        = string
 }
 
 variable "node_role_name" {
-  description = "Name of the IAM role for Karpenter-provisioned nodes"
+  description = "Node role name (for instance profile mapping)"
+  type        = string
+}
+
+variable "karpenter_version" {
+  description = "Karpenter Helm chart version"
   type        = string
 }

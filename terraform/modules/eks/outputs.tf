@@ -1,27 +1,38 @@
+###############################################################################
+# EKS Module — Outputs
+###############################################################################
+
 output "cluster_name" {
-  value = aws_eks_cluster.this.name
+  description = "EKS cluster name"
+  value       = aws_eks_cluster.eks_telp_web.name
 }
 
 output "cluster_endpoint" {
-  value = aws_eks_cluster.this.endpoint
+  description = "EKS API server endpoint"
+  value       = aws_eks_cluster.eks_telp_web.endpoint
 }
 
 output "cluster_ca_certificate" {
-  value = aws_eks_cluster.this.certificate_authority[0].data
+  description = "Cluster CA certificate (base64)"
+  value       = aws_eks_cluster.eks_telp_web.certificate_authority[0].data
 }
 
-output "cluster_arn" {
-  value = aws_eks_cluster.this.arn
+output "oidc_provider_arn" {
+  description = "OIDC provider ARN (for IRSA trust policies)"
+  value       = aws_iam_openid_connect_provider.eks.arn
 }
 
-output "oidc_issuer_url" {
-  value = aws_eks_cluster.this.identity[0].oidc[0].issuer
+output "oidc_provider_url" {
+  description = "OIDC issuer URL (without https://, for IAM conditions)"
+  value       = replace(aws_eks_cluster.eks_telp_web.identity[0].oidc[0].issuer, "https://", "")
 }
 
 output "node_role_arn" {
-  value = aws_iam_role.node.arn
+  description = "Node IAM role ARN"
+  value       = aws_iam_role.node.arn
 }
 
 output "node_role_name" {
-  value = aws_iam_role.node.name
+  description = "Node IAM role name"
+  value       = aws_iam_role.node.name
 }

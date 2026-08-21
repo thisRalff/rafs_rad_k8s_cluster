@@ -1,14 +1,13 @@
-# Karpenter Helm release - installs the Karpenter controller into the cluster
+###############################################################################
+# Karpenter Helm Module — Installs the Karpenter controller
+###############################################################################
 
 resource "helm_release" "karpenter" {
-  name             = "karpenter"
-  namespace        = var.karpenter_namespace
-  create_namespace = true
-  repository       = "oci://public.ecr.aws/karpenter"
-  chart            = "karpenter"
-  version          = var.karpenter_version
-  wait             = true
-  timeout          = 600
+  name       = "karpenter"
+  namespace  = "kube-system"
+  repository = "oci://public.ecr.aws/karpenter"
+  chart      = "karpenter"
+  version    = var.karpenter_version
 
   set {
     name  = "settings.clusterName"
@@ -40,13 +39,5 @@ resource "helm_release" "karpenter" {
     value = "256Mi"
   }
 
-  set {
-    name  = "controller.resources.limits.cpu"
-    value = "1"
-  }
-
-  set {
-    name  = "controller.resources.limits.memory"
-    value = "1Gi"
-  }
+  wait = true
 }
