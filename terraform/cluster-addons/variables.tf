@@ -82,8 +82,8 @@ variable "argocd_version" {
   type        = string
 }
 
-# --- Hello World smoke-test ingress ---
+# --- Operator access (Argo CD UI ingress) ---
 variable "operator_allowed_cidrs" {
-  description = "CIDR blocks allowed to reach the smoke-test ALB listener"
+  description = "CIDR blocks allowed to reach the operator ALB listener (Argo CD UI)"
   type        = list(string)
 }
