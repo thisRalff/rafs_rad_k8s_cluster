@@ -6,13 +6,13 @@ metadata:
   labels:
     app: {{ .Release.Name }}
   annotations:
+    # Joins the shared telp-operator ALB. Network access is enforced by the
+    # Terraform-managed operator security group on that ALB, not here, so this
+    # chart intentionally sets no CIDR or security-group annotation.
     alb.ingress.kubernetes.io/group.name: telp-operator
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
-    {{- with .Values.ingress.inboundCidrs }}
-    alb.ingress.kubernetes.io/inbound-cidrs: {{ . | quote }}
-    {{- end }}
 spec:
   ingressClassName: alb
   rules:

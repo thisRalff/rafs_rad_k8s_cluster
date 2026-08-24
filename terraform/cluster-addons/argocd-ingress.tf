@@ -20,7 +20,11 @@ resource "kubectl_manifest" "argocd_ingress" {
         alb.ingress.kubernetes.io/scheme: internet-facing
         alb.ingress.kubernetes.io/target-type: ip
         alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
-        alb.ingress.kubernetes.io/inbound-cidrs: ${join(",", var.operator_allowed_cidrs)}
+        # Network access is enforced solely by this operator SG (single source
+        # of truth). Custom SGs disable the controller's auto-managed frontend
+        # SG, so we let it still manage backend rules to reach the pods.
+        alb.ingress.kubernetes.io/security-groups: ${aws_security_group.operator_alb.id}
+        alb.ingress.kubernetes.io/manage-backend-security-group-rules: "true"
     spec:
       ingressClassName: alb
       rules:

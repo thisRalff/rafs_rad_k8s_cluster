@@ -20,12 +20,11 @@ service:
   port: 80
 
 ingress:
-  # Enabled and IP-restricted via the Argo CD Application parameters, so the
-  # operator CIDR is never committed to Git. Leaving inboundCidrs empty means
-  # the ALB listener has no allow rule (effectively closed) until supplied.
-  enabled: false
+  # Joins the shared telp-operator ALB. Access restriction is enforced by the
+  # Terraform-managed operator security group on that ALB, so no CIDR lives
+  # here and the chart stays environment-agnostic and safe to commit publicly.
+  enabled: true
   path: /
-  inboundCidrs: ""
 
 resources:
   requests:
