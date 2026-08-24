@@ -51,3 +51,33 @@ module "argocd" {
 
   argocd_version = var.argocd_version
 }
+
+module "external_secrets" {
+  source = "../modules/external-secrets"
+
+  chart_version = var.eso_chart_version
+  role_arn      = var.eso_role_arn
+}
+
+module "rds_restore" {
+  source = "../modules/rds-restore"
+
+  identifier                       = var.rds_restore_identifier
+  snapshot_identifier              = var.rds_restore_snapshot_id
+  instance_class                   = var.rds_restore_instance_class
+  db_subnet_group_name             = var.rds_restore_subnet_group_name
+  vpc_id                           = var.vpc_id
+  allowed_source_security_group_id = var.cluster_security_group_id
+
+  tags = local.common_tags
+}
+
+# Publish ONLY the restored DB host to SSM (/todoelpaso/db/host_k8s). Reuses the
+# existing prod db name/user/password + wp salts, since this DB is a copy.
+module "ssm_db_host" {
+  source = "../modules/ssm-db-host"
+
+  db_host = module.rds_restore.address
+
+  tags = local.common_tags
+}

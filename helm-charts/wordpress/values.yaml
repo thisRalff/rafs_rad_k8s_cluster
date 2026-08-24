@@ -1,0 +1,69 @@
+# =============================================================================
+# WordPress (PHP-FPM) + nginx sidecar, deployed by ArgoCD.
+#
+# Secrets (DB creds + WP salts) come from AWS SSM via External Secrets Operator,
+# synced into a Kubernetes Secret and injected as env vars. No secrets in Git.
+# Network access is enforced by the Terraform operator ALB security group.
+# =============================================================================
+
+replicaCount: 1
+
+image:
+  # PHP-FPM WordPress image. `registry` is environment-specific (the ECR account
+  # host) and is supplied by the ArgoCD Application, keeping this chart reusable
+  # and free of any account ID. `repository` is the non-sensitive image path.
+  registry: ""  # e.g. <account>.dkr.ecr.<region>.amazonaws.com  (set per-env)
+  repository: telp-k8s/wordpress
+  tag: "v1.0.0"
+  pullPolicy: IfNotPresent
+
+nginx:
+  image: nginx:1.27-alpine
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  # Joins the shared telp-operator ALB. Access restriction is enforced by the
+  # Terraform-managed operator security group on that ALB, so no CIDR here.
+  enabled: true
+  path: /
+
+# External Secrets: pull these SSM params into a K8s Secret. The restored DB
+# reuses the production credentials (it is a copy), so only the host differs.
+externalSecrets:
+  # SecretStore references the ESO ServiceAccount's IRSA role for SSM access.
+  region: us-west-2
+  refreshInterval: 1h
+  # Map SSM parameter -> Secret key -> WordPress env var.
+  # WordPress base image reads WORDPRESS_DB_* and the salt constants.
+  parameters:
+    WORDPRESS_DB_HOST: /todoelpaso/db/host_k8s
+    WORDPRESS_DB_NAME: /todoelpaso/db/name
+    WORDPRESS_DB_USER: /todoelpaso/db/user
+    WORDPRESS_DB_PASSWORD: /todoelpaso/db/password
+    WORDPRESS_AUTH_KEY: /todoelpaso/wp/auth_key
+    WORDPRESS_AUTH_SALT: /todoelpaso/wp/auth_salt
+    WORDPRESS_LOGGED_IN_KEY: /todoelpaso/wp/logged_in_key
+    WORDPRESS_LOGGED_IN_SALT: /todoelpaso/wp/logged_in_salt
+    WORDPRESS_NONCE_KEY: /todoelpaso/wp/nonce_key
+    WORDPRESS_NONCE_SALT: /todoelpaso/wp/nonce_salt
+    WORDPRESS_SECURE_AUTH_KEY: /todoelpaso/wp/secure_auth_key
+    WORDPRESS_SECURE_AUTH_SALT: /todoelpaso/wp/secure_auth_salt
+
+resources:
+  php:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  nginx:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi

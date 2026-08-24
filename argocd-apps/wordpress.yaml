@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: wordpress
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/thisRalff/rafs_rad_k8s_cluster.git
+    targetRevision: main
+    path: helm-charts/wordpress
+    helm:
+      parameters:
+        # Environment-specific ECR registry host (account-specific). Kept here
+        # rather than in the chart so the chart stays reusable across accounts.
+        - name: image.registry
+          value: 783633796881.dkr.ecr.us-west-2.amazonaws.com
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: wordpress
+
+  syncPolicy:
+    # Argo creates the wordpress namespace; sync stays manual for this POC.
+    # DB creds + WP salts are synced from SSM by External Secrets Operator;
+    # network access is enforced by the Terraform operator ALB security group.
+    syncOptions:
+      - CreateNamespace=true

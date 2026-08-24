@@ -36,3 +36,8 @@ output "node_role_name" {
   description = "Node IAM role name"
   value       = aws_iam_role.node.name
 }
+
+output "cluster_security_group_id" {
+  description = "EKS-managed cluster security group (attached to all nodes/pods)"
+  value       = aws_eks_cluster.eks_telp_web.vpc_config[0].cluster_security_group_id
+}

@@ -6,3 +6,6 @@
 data "aws_vpc" "existing" {
   id = var.vpc_id
 }
+
+# Current AWS account (for scoping SSM/KMS ARNs)
+data "aws_caller_identity" "current" {}

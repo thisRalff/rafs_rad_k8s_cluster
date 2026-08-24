@@ -82,8 +82,47 @@ variable "argocd_version" {
   type        = string
 }
 
+# --- External Secrets Operator ---
+variable "eso_chart_version" {
+  description = "external-secrets Helm chart version"
+  type        = string
+}
+
+variable "eso_role_arn" {
+  description = "ESO IRSA role ARN from Stack 1"
+  type        = string
+}
+
 # --- Operator access (Argo CD UI ingress) ---
 variable "operator_allowed_cidrs" {
   description = "CIDR blocks allowed to reach the operator ALB listener (Argo CD UI)"
   type        = list(string)
+}
+
+# --- RDS restore (isolated copy of prod DB for the cluster) ---
+variable "cluster_security_group_id" {
+  description = "EKS cluster security group ID (from Stack 1 output); source SG for DB access"
+  type        = string
+}
+
+variable "rds_restore_snapshot_id" {
+  description = "Manual snapshot of the production DB to restore from"
+  type        = string
+}
+
+variable "rds_restore_identifier" {
+  description = "Identifier for the restored DB instance"
+  type        = string
+  default     = "telp-k8s-wp-restore"
+}
+
+variable "rds_restore_instance_class" {
+  description = "Instance class for the restored DB (mirror source)"
+  type        = string
+  default     = "db.t4g.small"
+}
+
+variable "rds_restore_subnet_group_name" {
+  description = "DB subnet group for the restored instance"
+  type        = string
 }

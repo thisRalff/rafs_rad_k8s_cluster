@@ -10,7 +10,7 @@
 # SQS Queue — Karpenter polls this for interruption warnings
 resource "aws_sqs_queue" "karpenter_interruption" {
   name                      = "${var.cluster_name}-karpenter-interruption"
-  message_retention_seconds = 300  # 5 min — interruptions are time-sensitive
+  message_retention_seconds = 300 # 5 min — interruptions are time-sensitive
   sqs_managed_sse_enabled   = true
 
   tags = merge(var.tags, { Name = "${var.cluster_name}-karpenter-interruption" })

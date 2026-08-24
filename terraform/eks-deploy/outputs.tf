@@ -52,6 +52,16 @@ output "node_role_name" {
   value       = module.eks.node_role_name
 }
 
+output "cluster_security_group_id" {
+  description = "EKS-managed cluster security group (used by nodes/pods; source for RDS access)"
+  value       = module.eks.cluster_security_group_id
+}
+
+output "eso_role_arn" {
+  description = "External Secrets Operator IRSA role ARN"
+  value       = module.eso_irsa.role_arn
+}
+
 output "karpenter_controller_role_arn" {
   description = "Karpenter IRSA role ARN"
   value       = module.karpenter_irsa.controller_role_arn

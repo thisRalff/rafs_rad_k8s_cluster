@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ .Release.Name }}
+      volumes:
+        # Shared WordPress webroot: PHP-FPM populates it at startup, nginx serves
+        # static files from it.
+        - name: wp-content
+          emptyDir: {}
+        - name: nginx-conf
+          configMap:
+            name: {{ .Release.Name }}-nginx
+      containers:
+        # --- PHP-FPM (the ECR image) ---
+        - name: php-fpm
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: fpm
+              containerPort: 9000
+          envFrom:
+            # DB creds + WP salts synced from SSM by ESO.
+            - secretRef:
+                name: {{ .Release.Name }}-secrets
+          volumeMounts:
+            - name: wp-content
+              mountPath: /var/www/html
+          resources:
+            {{- toYaml .Values.resources.php | nindent 12 }}
+        # --- nginx sidecar (serves :80, proxies PHP to 127.0.0.1:9000) ---
+        - name: nginx
+          image: {{ .Values.nginx.image }}
+          ports:
+            - name: http
+              containerPort: 80
+          volumeMounts:
+            - name: wp-content
+              mountPath: /var/www/html
+            - name: nginx-conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.resources.nginx | nindent 12 }}
