@@ -17,7 +17,8 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
-    - http:
+    - host: {{ .Values.ingress.host }}
+      http:
         paths:
           - path: {{ .Values.ingress.path }}
             pathType: Prefix

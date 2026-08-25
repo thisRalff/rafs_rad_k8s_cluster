@@ -25,9 +25,10 @@ service:
   port: 80
 
 ingress:
-  # Joins the shared telp-operator ALB. Access restriction is enforced by the
-  # Terraform-managed operator security group on that ALB, so no CIDR here.
+  # Joins the shared telp-operator ALB with host-based routing. Access
+  # restriction is enforced by the Terraform-managed operator SG on that ALB.
   enabled: true
+  host: admin.todoelpaso.com
   path: /
 
 # External Secrets: pull these SSM params into a K8s Secret. The restored DB
